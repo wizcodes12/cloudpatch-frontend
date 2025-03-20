@@ -159,18 +159,18 @@ const ManualCheck = ({ user, setUser, API_BASE_URL, showNotification }) => {
       displayPrompt("Please enter an API URL or endpoint", "error");
       return;
     }
-
+  
     if (!validateApiUrl(apiUrl)) {
       displayPrompt(hostingType === 'cloud' ? "Please enter a valid full URL" : "Please enter a valid endpoint", "error");
       return;
     }
-
+  
     try {
       setLoading(true);
       setShowLoader(true);
       setLoaderType('scanning');
       
-      const token = getGitHubToken();
+      const token = authService.getGitHubToken(); // Use authService consistently
       
       // Prepare the API endpoint and query parameters
       let fullUrl = '';
@@ -186,7 +186,7 @@ const ManualCheck = ({ user, setUser, API_BASE_URL, showNotification }) => {
         fullUrl = apiUrl;
         requestUrl = `${API_BASE_URL}/check-api?api_url=${encodeURIComponent(fullUrl)}&method=${method}`;
       }
-
+  
       console.log("Sending request to:", requestUrl);
       
       const checkResponse = await fetch(
@@ -195,16 +195,18 @@ const ManualCheck = ({ user, setUser, API_BASE_URL, showNotification }) => {
           method: 'GET',
           headers: {
             "Authorization": token ? `Bearer ${token}` : '',
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Origin": window.location.origin // Add explicit Origin header
           },
-          credentials: 'include'
+          credentials: 'include', // Ensure cookies are sent
+          mode: 'cors' // Explicitly request CORS mode
         }
       );
-
+  
       if (!checkResponse.ok) {
         const errorText = await checkResponse.text();
         console.error("API response error:", errorText);
-        throw new Error(`Error checking API: ${checkResponse.status} ${checkResponse.statusText}`);
+        throw new Error(`Error checking API: ${checkResponse.status} ${checkResponse.statusText} - ${errorText}`);
       }
       
       const apiCheckData = await checkResponse.json();
@@ -239,10 +241,10 @@ const ManualCheck = ({ user, setUser, API_BASE_URL, showNotification }) => {
         // Keep track of whether this was a local endpoint check
         is_local: hostingType === 'local'
       });
-
+  
       const errorCount = apiCheckData.error ? 1 : 
                         (apiCheckData.scan_results?.errors_detected?.length || 0);
-
+  
       if (isLocalServerError) {
         // Special handling for local server errors
         displayPrompt(
@@ -280,154 +282,192 @@ const ManualCheck = ({ user, setUser, API_BASE_URL, showNotification }) => {
   };
 
   // Auto-fix function
-  const handleAutoFix = async (error, solution) => {
-    // Store the error and solution for potential retry
-    lastErrorAttempted = error;
-    lastSolutionAttempted = solution;
+  // Auto-fix function
+const handleAutoFix = async (error, solution) => {
+  // Store the error and solution for potential retry
+  lastErrorAttempted = error;
+  lastSolutionAttempted = solution;
+  
+  try {
+    setApplyingFix(true);
+    setShowLoader(true);
+    setLoaderType('applying-fix');
     
-    if (!user) {
-        displayPrompt("Please login with GitHub to apply fixes", "error");
+    // Get the GitHub token directly from AuthService
+    const token = authService.getGitHubToken();
+    if (!token) {
+      displayPrompt("GitHub token not found. Please log in again.", "error");
+      
+      // Direct to login page using authService
+      authService.redirectToLogin(window.location.href, 'web');
+      return;
+    }
+    
+    console.log("Using token for auto-fix:", token.substring(0, 5) + "...");
+    
+    // Call your server's /apply-fix endpoint to get the DeepSeek solution
+    const response = await fetch(`${API_BASE_URL}/apply-fix`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Origin": window.location.origin
+      },
+      body: JSON.stringify({
+        api_url: apiUrl,
+        fix_content: error.error
+      }),
+      credentials: 'include',
+      mode: 'cors'
+    });
+    
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        // If JSON parsing fails, get the response as text
+        const text = await response.text();
+        errorData = { detail: text };
+      }
+      
+      console.error("Apply fix error response:", errorData);
+      throw new Error(`Failed to prepare fix: ${typeof errorData === 'object' ? JSON.stringify(errorData) : errorData}`);
+    }
+    
+    const result = await response.json();
+    console.log("Apply fix response:", result);
+    
+    if (result.status === "auth_required") {
+      // Open a new window for GitHub authentication
+      const width = 1000;
+      const height = 800;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      const popupWindow = window.open(
+        result.auth_url,
+        'github-auth',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+      );
+      
+      if (!popupWindow) {
+        setShowPopupBlocked(true);
+        displayPrompt("Popup was blocked. Please allow popups for this site.", "error");
         return;
+      }
+      
+      // Set up event listener for messages from the popup
+      const messageHandler = function(event) {
+        // Check if message is from our expected origin
+        const expectedOrigins = [
+          'http://localhost:3000',
+          'http://localhost:8000', 
+          'https://cloudpatch-frontend.onrender.com',
+          API_BASE_URL
+        ];
+        
+        if (!expectedOrigins.includes(event.origin) && !event.origin.includes('localhost')) {
+          console.warn(`Ignoring message from unexpected origin: ${event.origin}`);
+          return;
+        }
+        
+        if (event.data && event.data.type === 'auth_complete') {
+          // Handle successful authentication
+          console.log("Received auth_complete message", event.data);
+          
+          // Store the new token if provided
+          if (event.data.token) {
+            authService.storeGitHubToken(event.data.token, event.data.user);
+          }
+          
+          displayPrompt("Authentication successful! Please try applying the fix again.", "success");
+          checkApi(); // Refresh results
+        }
+      };
+      
+      window.addEventListener('message', messageHandler);
+      
+      // Clean up event listener when window closes
+      const checkPopupClosed = setInterval(() => {
+        if (popupWindow.closed) {
+          clearInterval(checkPopupClosed);
+          window.removeEventListener('message', messageHandler);
+        }
+      }, 1000);
+      
+      return;
     }
-    try {
-        setApplyingFix(true);
-        setShowLoader(true);
-        setLoaderType('applying-fix');
-        
-        // Get the GitHub token directly from AuthService
-        const token = authService.getGitHubToken();
-        if (!token) {
-            displayPrompt("GitHub token not found. Please log in again.", "error");
-            authService.clearAuthState();
-            // Direct to login page
-            window.location.href = `${API_BASE_URL}/auth/github?returnTo=${encodeURIComponent(window.location.href)}&client=web`;
-            return;
-        }
-        
-        // Call your server's /apply-fix endpoint to get the DeepSeek solution
-        const response = await fetch(`${API_BASE_URL}/apply-fix`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                api_url: apiUrl,
-                fix_content: error.error
-            })
-        });
-        
-        if (!response.ok) {
-            let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                // If JSON parsing fails, get the response as text
-                const text = await response.text();
-                errorData = { detail: text };
-            }
-            throw new Error(`Failed to prepare fix: ${typeof errorData === 'object' ? JSON.stringify(errorData) : errorData}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.status === "auth_required") {
-            // Open a new window for GitHub authentication
-            const width = 1000;
-            const height = 800;
-            const left = window.screenX + (window.outerWidth - width) / 2;
-            const top = window.screenY + (window.outerHeight - height) / 2;
-            
-            const popupWindow = window.open(
-                result.auth_url,
-                'github-auth',
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
-            );
-            
-            if (!popupWindow) {
-                setShowPopupBlocked(true);
-                displayPrompt("Popup was blocked. Please allow popups for this site.", "error");
-                return;
-            }
-            
-            // Set up event listener for messages from the popup
-            const messageHandler = function(event) {
-                if (event.data && event.data.type === 'auth_complete') {
-                    // Handle successful authentication
-                    displayPrompt("Authentication successful! Please try applying the fix again.", "success");
-                    checkApi(); // Refresh results
-                }
-            };
-            
-            window.addEventListener('message', messageHandler);
-            
-            // Clean up event listener when window closes
-            const checkPopupClosed = setInterval(() => {
-                if (popupWindow.closed) {
-                    clearInterval(checkPopupClosed);
-                    window.removeEventListener('message', messageHandler);
-                }
-            }, 1000);
-            
-            return;
-        }
-        
-        if (!result.solution) {
-            throw new Error("No solution was generated");
-        }
-        
-        // Create issue body with the solution
-        const issueBody = `## Error Detected\n${error.error}\n\n## Suggested Fix\n\`\`\`javascript\n${result.solution}\n\`\`\`\n\nGenerated by API Fixer tool`;
-        const issueTitle = `Fix for API issue: ${apiUrl}`;
-        
-        // Use a server-side endpoint to handle the GitHub issue creation window
-        const width = 1000;
-        const height = 800;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-        
-        // Use the github-issue-creator endpoint to open a new window
-        const creatorUrl = `${API_BASE_URL}/github-issue-creator?token=${encodeURIComponent(token)}&title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
-        
-        const popupWindow = window.open(
-            creatorUrl,
-            'github-issue-creator',
-            `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
-        );
-        
-        if (!popupWindow) {
-            setShowPopupBlocked(true);
-            displayPrompt("Popup was blocked. Please allow popups for this site.", "error");
-            return;
-        }
-        
-        // Set up event listener for messages from the popup
-        const messageHandler = function(event) {
-            if (event.data && event.data.type === 'issue-created') {
-                displayPrompt(`Issue #${event.data.issueNumber} created successfully!`, "success");
-                checkApi(); // Refresh results
-            }
-        };
-        
-        window.addEventListener('message', messageHandler);
-        
-        // Clean up event listener when window closes
-        const checkPopupClosed = setInterval(() => {
-            if (popupWindow.closed) {
-                clearInterval(checkPopupClosed);
-                window.removeEventListener('message', messageHandler);
-            }
-        }, 1000);
-        
-        displayPrompt("GitHub repository selector opened in new window", "success");
-    } catch (error) {
-        console.error("Auto-fix error:", error);
-        displayPrompt(error.message || "Failed to apply fix", "error");
-    } finally {
-        setApplyingFix(false);
-        setShowLoader(false);
+    
+    if (!result.solution) {
+      throw new Error("No solution was generated");
     }
-  };
+    
+    // Create issue body with the solution
+    const issueBody = `## Error Detected\n${error.error}\n\n## Suggested Fix\n\`\`\`javascript\n${result.solution}\n\`\`\`\n\nGenerated by API Fixer tool`;
+    const issueTitle = `Fix for API issue: ${apiUrl}`;
+    
+    // Use a server-side endpoint to handle the GitHub issue creation window
+    const width = 1000;
+    const height = 800;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    
+    // Use the github-issue-creator endpoint to open a new window
+    const creatorUrl = `${API_BASE_URL}/github-issue-creator?token=${encodeURIComponent(token)}&title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
+    
+    const popupWindow = window.open(
+      creatorUrl,
+      'github-issue-creator',
+      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+    );
+    
+    if (!popupWindow) {
+      setShowPopupBlocked(true);
+      displayPrompt("Popup was blocked. Please allow popups for this site.", "error");
+      return;
+    }
+    
+    // Set up event listener for messages from the popup
+    const messageHandler = function(event) {
+      // Check if message is from our expected origin
+      const expectedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:8000', 
+        'https://cloudpatch-frontend.onrender.com',
+        API_BASE_URL
+      ];
+      
+      if (!expectedOrigins.includes(event.origin) && !event.origin.includes('localhost')) {
+        console.warn(`Ignoring message from unexpected origin: ${event.origin}`);
+        return;
+      }
+      
+      if (event.data && event.data.type === 'issue-created') {
+        displayPrompt(`Issue #${event.data.issueNumber} created successfully!`, "success");
+        checkApi(); // Refresh results
+      }
+    };
+    
+    window.addEventListener('message', messageHandler);
+    
+    // Clean up event listener when window closes
+    const checkPopupClosed = setInterval(() => {
+      if (popupWindow.closed) {
+        clearInterval(checkPopupClosed);
+        window.removeEventListener('message', messageHandler);
+      }
+    }, 1000);
+    
+    displayPrompt("GitHub repository selector opened in new window", "success");
+  } catch (error) {
+    console.error("Auto-fix error:", error);
+    displayPrompt(error.message || "Failed to apply fix", "error");
+  } finally {
+    setApplyingFix(false);
+    setShowLoader(false);
+  }
+};
 
   const handleDownloadPDF = async (error, solution, apiDetails) => {
     try {
