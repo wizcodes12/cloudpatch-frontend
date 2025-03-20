@@ -1,0 +1,160 @@
+/* ManualCheckLoader.css */
+.loading-prompt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  
+  .loading-prompt-container {
+    width: 320px;
+    padding: 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+    height: 50px;
+  }
+  
+  .loading-prompt-icon {
+    color: white;
+  }
+  
+  .loading-prompt-icon.spin {
+    animation: rotate 2s linear infinite;
+  }
+  
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .loading-prompt-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  
+  .loading-prompt-message {
+    font-size: 14px;
+    margin-bottom: 24px;
+    opacity: 0.9;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeMessage 0.5s ease-out;
+  }
+  
+  @keyframes fadeMessage {
+    from { opacity: 0; }
+    to { opacity: 0.9; }
+  }
+  
+  .loading-prompt-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    margin-bottom: 8px;
+  }
+  
+  .loading-prompt-spinner {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(transparent, rgba(255, 255, 255, 0.8));
+    animation: spin 1.5s linear infinite;
+  }
+  
+  .spinner-inner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: 5px;
+    left: 5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .github-icon, .pdf-icon {
+    width: 40px;
+    height: 40px;
+    display: block;
+    margin: 0 auto;
+    animation: pulse 2s infinite ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.8; transform: scale(1); }
+  }
+  
+  .popup-blocked-notification {
+    background-color: #ff4757;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+  
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+  
+  .popup-notification-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 10px;
+  }
+  
+  .popup-notification-button {
+    background-color: white;
+    color: #ff4757;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .popup-notification-button:hover {
+    background-color: #f1f1f1;
+  }

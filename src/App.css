@@ -1,0 +1,100 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-color);
+}
+.app-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.toast-app {
+  position: fixed;
+  top: 6rem;  /* Moved down from 1rem */
+  right: 1rem;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  color: white;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--neon-shadow);
+  border: 1px solid var(--glass-border);
+  min-width: 300px;
+  transform-origin: right;
+  z-index: 1000;
+}
+.toast-app.success {
+  background: var(--gradient-1);
+  animation: toastSlideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+             toastFloat 3s ease-in-out infinite;
+}
+.toast-app.error {
+  background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
+  animation: toastSlideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+             toastShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both,
+             toastFloat 3s ease-in-out infinite;
+}
+.toast-app::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--glass-bg);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.toast-app:hover::before {
+  opacity: 1;
+}
+/* Toast entrance animation */
+@keyframes toastSlideIn {
+  0% {
+    transform: translateX(100%) scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+/* Gentle floating animation */
+@keyframes toastFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+/* Shake animation for error toasts */
+@keyframes toastShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+/* Toast exit animation */
+.toast-app.hiding {
+  animation: toastSlideOut 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+@keyframes toastSlideOut {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) scale(0.7);
+    opacity: 0;
+  }
+}
+
+

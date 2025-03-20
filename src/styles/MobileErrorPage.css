@@ -1,0 +1,60 @@
+.mobile-error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1c2e, #2a2f4c);
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .mobile-error-content {
+    max-width: 90%;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mobile-error-content::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #3498db, #1e88e5);
+    border-radius: 18px;
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(8px);
+  }
+  
+  .mobile-error-logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: 24px;
+  }
+  
+  .mobile-error-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #3498db;
+  }
+  
+  .mobile-error-message {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .mobile-error-instruction {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+  }

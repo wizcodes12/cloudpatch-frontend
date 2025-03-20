@@ -1,0 +1,184 @@
+.docs-page {
+    padding: 4rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-color);
+  }
+  
+  .docs-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  
+  .docs-title {
+    font-size: 3rem;
+    background: linear-gradient(45deg, #4682B4, #87CEEB);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+  
+  .docs-subtitle {
+    color: var(--accent-blue);
+    font-size: 1.2rem;
+  }
+  
+  .docs-section {
+    margin-bottom: 4rem;
+    
+  }
+  
+  .docs-section h2 {
+    font-size: 2rem;
+    color: var(--text-dark);
+    margin-bottom: 2rem;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  
+  .feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(137, 207, 240, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(137, 207, 240, 0.2);
+  }
+  
+  .feature-icon {
+    color: #4682B4;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .steps-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .step-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(137, 207, 240, 0.1);
+    position: relative;
+  }
+  
+  .step-number {
+    position: absolute;
+    top: -1rem;
+    left: -1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(45deg, #4682B4, #87CEEB);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .code-block {
+    background: #f5f7f9;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .copy-button {
+    background: none;
+    border: none;
+    color: #4682B4;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.3s ease;
+  }
+  
+  .copy-button:hover {
+    color: #87CEEB;
+  }
+  
+  .api-input-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .api-input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(137, 207, 240, 0.2);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  
+  .api-input:focus {
+    outline: none;
+    border-color: #4682B4;
+  }
+  
+  .validate-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(45deg, #4682B4, #87CEEB);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .validate-button:hover {
+    transform: translateX(5px);
+  }
+  
+  @media (max-width: 768px) {
+    .docs-title {
+      font-size: 2rem;
+    }
+    
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .api-input-container {
+      flex-direction: column;
+    }
+    
+    .validate-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+  /* Add to your existing HomePage.css */
+  .moved-up {
+    padding-top: 2rem !important;
+  }
+  
+  .gradient-letter {
+    display: inline-block;
+    animation: gradient-shift 3s infinite, fadeIn 0.5s forwards;
+    background: linear-gradient(45deg, #4682B4, #87CEEB, #B0E0E6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+  }

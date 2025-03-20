@@ -1,0 +1,173 @@
+.footer {
+  padding: 2rem 0;
+  margin-top: auto;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: white;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(137, 207, 240, 0.3), transparent);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Enhanced branding styles */
+.footer-brand-container {
+  padding: 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(70, 130, 180, 0.1), rgba(135, 206, 235, 0.1));
+  box-shadow: 
+    0 2px 10px rgba(70, 130, 180, 0.1),
+    inset 0 0 0 1px rgba(70, 130, 180, 0.1);
+}
+
+.brand-box {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 12px;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.logo-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(180deg, #4682B4, #87CEEB);
+  opacity: 0.3;
+}
+
+.gradient-text {
+  background: linear-gradient(45deg, #4682B4, #87CEEB);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4682B4;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #87CEEB;
+}
+
+.created-by {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4682B4;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: linear-gradient(180deg, #4682B4, #87CEEB);
+  opacity: 0.3;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(137, 207, 240, 0.1);
+  padding-top: 1.5rem;
+}
+
+.copyright {
+  text-align: center;
+  color: #4682B4;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.separator {
+  color: rgba(70, 130, 180, 0.3);
+}
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .divider {
+    width: 50px;
+    height: 1px;
+  }
+  
+  .copyright {
+    flex-direction: column;
+  }
+  
+  .separator {
+    display: none;
+  }
+
+  .footer-logo {
+    height: 32px;
+  }
+
+  .brand-box {
+    padding: 6px 12px;
+  }
+
+  .gradient-text {
+    font-size: 1.2rem;
+  }
+}
