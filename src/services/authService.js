@@ -6,7 +6,6 @@ class AuthService {
     this.AUTH_BASE_URL = "https://cloudpatch-backend-js.onrender.com";
   }
 
-
   // Store auth state with token and user info
   setAuthState(token, user) {
     if (!token) {
@@ -72,14 +71,26 @@ class AuthService {
     return authState ? authState.user : null;
   }
 
+  // Only one clearAuthState method
   clearAuthState() {
+    console.log('Clearing auth state...');
+    
+    // Clear from all possible storage locations
     localStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.tokenKey);
-    // Also clear GitHub specific tokens
     localStorage.removeItem(this.githubTokenKey);
+    sessionStorage.removeItem(this.githubTokenKey);
     localStorage.removeItem('user_data');
-    // Clear GitHub cookie
-    document.cookie = `${this.githubTokenKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    
+    // Clear all cookies related to authentication
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      const cookieName = cookie.split('=')[0];
+      if (cookieName === this.githubTokenKey || cookieName.includes('github') || cookieName.includes('auth')) {
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    }
     
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
@@ -104,8 +115,11 @@ class AuthService {
         const response = await fetch(`${this.AUTH_BASE_URL}/api/validate-token`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            'Authorization': `Bearer ${token}`,
+            'Origin': window.location.origin // Add explicit Origin header
+          },
+          credentials: 'include',
+          mode: 'cors'
         });
         
         if (!response.ok) {
@@ -142,8 +156,11 @@ class AuthService {
       const response = await fetch(`${this.AUTH_BASE_URL}/api/validate-token`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Origin': window.location.origin
+        },
+        credentials: 'include',
+        mode: 'cors'
       });
       
       if (!response.ok) {
@@ -286,7 +303,7 @@ class AuthService {
         let userData = null;
         if (userDataParam) {
           try {
-            userData = JSON.parse(userDataParam);
+            userData = JSON.parse(decodeURIComponent(userDataParam));
           } catch (e) {
             console.warn('Failed to parse user data from URL');
           }
@@ -309,46 +326,20 @@ class AuthService {
     return false;
   }
 
-  // Add this for debugging in authService.js
-  clearAuthState() {
-    console.log('Clearing auth state...');
-    
-    // Clear from all possible storage locations
-    localStorage.removeItem(this.tokenKey);
-    sessionStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.githubTokenKey);
-    sessionStorage.removeItem(this.githubTokenKey);
-    localStorage.removeItem('user_data');
-    
-    // Clear all cookies related to authentication
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      const cookieName = cookie.split('=')[0];
-      if (cookieName === this.githubTokenKey || cookieName.includes('github') || cookieName.includes('auth')) {
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-      }
-    }
-    
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-    }
-    
-    console.log('Auth state cleared');
+  /**
+   * Force a login redirect to GitHub
+   * @param {string} returnUrl URL to return to after login
+   * @param {string} clientType 'web' or 'electron'
+   */
+  redirectToLogin(returnUrl = window.location.pathname, clientType = 'web') {
+    const encodedReturnUrl = encodeURIComponent(returnUrl);
+    // Use origin to determine redirect URI
+    const redirectUri = process.env.NODE_ENV === 'production' 
+      ? 'https://cloudpatch-frontend.onrender.com' 
+      : window.location.origin;
+      
+    window.location.href = `${this.AUTH_BASE_URL}/auth/github?returnTo=${encodedReturnUrl}&client=${clientType}&redirectUri=${encodeURIComponent(redirectUri)}`;
   }
-  
-/**
- * Force a login redirect to GitHub
- * @param {string} returnUrl URL to return to after login
- * @param {string} clientType 'web' or 'electron'
- */
-redirectToLogin(returnUrl = window.location.pathname, clientType = 'web') {
-  const encodedReturnUrl = encodeURIComponent(returnUrl);
-  // Explicitly set to localhost for development
-  const redirectUri = 'http://localhost:3000';
-  window.location.href = `${this.AUTH_BASE_URL}/auth/github?returnTo=${encodedReturnUrl}&client=${clientType}&redirectUri=${encodeURIComponent(redirectUri)}`;
-}
-
 }
 
 export default new AuthService();
