@@ -413,8 +413,31 @@ const handleAutoFix = async (error, solution) => {
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
     
-    // Use the github-issue-creator endpoint to open a new window
-    const creatorUrl = `${API_BASE_URL}/github-issue-creator?token=${encodeURIComponent(token)}&title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;
+    // MODIFIED: Use a session-based approach instead of passing token directly in URL
+    // First, store the data in a temporary session endpoint
+    const sessionResponse = await fetch(`${API_BASE_URL}/create-issue-session`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Origin": window.location.origin
+      },
+      body: JSON.stringify({
+        title: issueTitle,
+        body: issueBody
+      }),
+      credentials: 'include',
+      mode: 'cors'
+    });
+    
+    if (!sessionResponse.ok) {
+      throw new Error("Failed to create issue session");
+    }
+    
+    const sessionData = await sessionResponse.json();
+    
+    // Then open the issue creator with just the session ID
+    const creatorUrl = `${API_BASE_URL}/github-issue-creator?session_id=${sessionData.session_id}`;
     
     const popupWindow = window.open(
       creatorUrl,
@@ -468,7 +491,6 @@ const handleAutoFix = async (error, solution) => {
     setShowLoader(false);
   }
 };
-
   const handleDownloadPDF = async (error, solution, apiDetails) => {
     try {
       setGeneratingPDF(true);
