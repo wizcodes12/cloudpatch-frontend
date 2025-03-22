@@ -90,11 +90,25 @@ const ChoosePage = () => {
               <X size={24} />
             </button>
             <div className="modal-logo">
-              <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" className="windows-logo">
-                <path d="M0 12.5L35.7 7.1V42.1H0V12.5Z" fill="#F25022"/>
-                <path d="M39.8 6.5L88 0V41.5H39.8V6.5Z" fill="#7FBA00"/>
-                <path d="M0 45.9H35.7V80.9L0 75.5V45.9Z" fill="#00A4EF"/>
-                <path d="M39.8 46.5H88V88L39.8 81.5V46.5Z" fill="#FFB900"/>
+              <svg viewBox="0 0 100 100" className="exe-logo" xmlns="http://www.w3.org/2000/svg">
+                {/* Desktop/App icon circle background */}
+                <circle cx="50" cy="50" r="45" fill="url(#appGradient)" />
+                
+                {/* Desktop icon */}
+                <rect x="25" y="25" width="50" height="35" rx="3" fill="#FFFFFF" />
+                <rect x="30" y="30" width="40" height="25" rx="1" fill="#0a2f6c" />
+                
+                {/* Download arrow */}
+                <path d="M50 68 L50 90" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" />
+                <path d="M35 75 L50 90 L65 75" stroke="#FFFFFF" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                
+                {/* Gradient definition */}
+                <defs>
+                  <linearGradient id="appGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#1e4586" />
+                    <stop offset="100%" stopColor="#0d2659" />
+                  </linearGradient>
+                </defs>
               </svg>
             </div>
             <div className="modal-content">
