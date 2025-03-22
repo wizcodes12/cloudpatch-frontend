@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Server, Cloud } from 'lucide-react';
+import { Server, Cloud, X } from 'lucide-react';
 import '../styles/ChoosePage.css';
 import authService from "../services/authService";
 
 const ChoosePage = () => {
   const navigate = useNavigate();
   const [hoveredOption, setHoveredOption] = useState(null);
+  const [showLocalModal, setShowLocalModal] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (showLocalModal) {
+      timer = setTimeout(() => {
+        setShowLocalModal(false);
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [showLocalModal]);
 
   const handleOptionSelect = (hostingType) => {
-    navigate('/manual-check', { state: { hostingType } });
+    if (hostingType === 'local') {
+      setShowLocalModal(true);
+    } else {
+      navigate('/manual-check', { state: { hostingType } });
+    }
   };
 
   return (
@@ -66,6 +81,36 @@ const ChoosePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Local Endpoint Modal */}
+      {showLocalModal && (
+        <div className="local-modal-overlay" onClick={() => setShowLocalModal(false)}>
+          <div className="local-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-modal" onClick={() => setShowLocalModal(false)}>
+              <X size={24} />
+            </button>
+            <div className="modal-logo">
+              <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg" className="windows-logo">
+                <path d="M0 12.5L35.7 7.1V42.1H0V12.5Z" fill="#F25022"/>
+                <path d="M39.8 6.5L88 0V41.5H39.8V6.5Z" fill="#7FBA00"/>
+                <path d="M0 45.9H35.7V80.9L0 75.5V45.9Z" fill="#00A4EF"/>
+                <path d="M39.8 46.5H88V88L39.8 81.5V46.5Z" fill="#FFB900"/>
+              </svg>
+            </div>
+            <div className="modal-content">
+              <h2>Local Endpoint Scanning</h2>
+              <p>Local endpoint scanning will be available when CloudPatch Desktop App is launched.</p>
+              <p>We're working hard to bring this feature to you soon. Please stay tuned!</p>
+              <div className="loading-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
